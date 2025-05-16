@@ -19,7 +19,11 @@ mongoose.connect('mongodb+srv://jalolsoxiddinov777:ODhNX8q9ewksZ3sl@cluster.dqa5
     .catch(err => console.error('❌ MongoDB ulanmadi:', err));
 
 // Middleware
-app.use(cors());
+app.use(cors()); // 💡 Bu barcha domenlarga ruxsat beradi
+// Yoki faqat 127.0.0.1:5500 ga:
+app.use(cors({
+    origin: 'http://127.0.0.1:5500'
+}));
 app.use(express.json());
 
 // Upload fayllarni xizmatga qo‘shish

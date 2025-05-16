@@ -153,12 +153,13 @@
   </div>
 
   <script>
+    const BASE_URL = 'https://server-spectrerental-3.onrender.com';
+    const API_URL = `${BASE_URL}/api/camera`;
+    const STORAGE_KEY = 'uploadedImages';
+
     const form = document.getElementById('uploadForm');
     const successMessage = document.getElementById('successMessage');
     const imagesContainer = document.getElementById('imagesContainer');
-
-    const API_URL = '';
-    const STORAGE_KEY = 'uploadedImages';
 
     let editImageId = null;
 
@@ -189,7 +190,7 @@
         const div = document.createElement('div');
         div.className = 'image-item';
 
-        const imageUrl = `http://localhost:5000/uploads/${img.imageUrl}`;
+        const imageUrl = `${BASE_URL}/uploads/${encodeURIComponent(img.imageUrl)}`;
 
         div.innerHTML = `
           <img src="${imageUrl}" alt="${img.name}" />
@@ -204,7 +205,6 @@
         imagesContainer.appendChild(div);
       });
 
-      // O'chirish tugmasi uchun
       document.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           const id = e.target.dataset.id;
@@ -224,9 +224,8 @@
         });
       });
 
-      // Tahrirlash tugmasi uchun
       document.querySelectorAll('.btn-edit').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+        btn.addEventListener('click', (e) => {
           const id = e.target.dataset.id;
           const images = getImagesFromLocal();
           const img = images.find(i => i._id === id);
@@ -239,9 +238,7 @@
 
           form.elements['name'].value = img.name;
           form.elements['title'].value = img.title || '';
-          // Fayl inputni tozalaymiz, foydalanuvchi istasa yangisini yuklaydi
           form.elements['image'].value = '';
-
           editImageId = id;
           successMessage.textContent = "🖊️ Tahrirlash rejimida. O'zgartirishlaringizni kiriting va 'Yuklash' tugmasini bosing.";
           clearSuccessMsg();
@@ -276,14 +273,12 @@
         let response, result;
 
         if (editImageId) {
-          // Tahrirlash uchun PUT so'rovi
           response = await fetch(`${API_URL}/${editImageId}`, {
             method: 'PUT',
             body: formData
           });
           result = await response.json();
         } else {
-          // Yangi rasm yuklash POST so'rovi
           response = await fetch(API_URL, {
             method: 'POST',
             body: formData
@@ -313,7 +308,7 @@
       } else {
         loadImages();
       }
-    }
+    };
   </script>
 </body>
 
