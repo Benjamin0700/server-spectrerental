@@ -1,7 +1,7 @@
 // server.js
 import express from 'express';
 import mongoose from 'mongoose';
-import imageRoutes from './routes/imageRoutes.js';
+import imageRoutes from './routes/cameraRoutes.js';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -29,7 +29,7 @@ app.use('/uploads', express.static(path.resolve('uploads')));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 
 // API marshrutlari
-app.use('/api/images', imageRoutes);
+app.use('/api/camera', imageRoutes);
 
 // Server ishga tushurish
 app.listen(PORT, () => {

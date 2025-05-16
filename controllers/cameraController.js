@@ -1,4 +1,4 @@
-import Image from '../models/Image.js';
+import Image from '../models/Camera.js';
 import fs from 'fs';
 import path from 'path';
 

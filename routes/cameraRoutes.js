@@ -6,7 +6,7 @@ import {
   getImageById,
   deleteImage,
   updateImage
-} from '../controllers/imageController.js';
+} from '../controllers/cameraController.js';
 
 const router = express.Router();
 
