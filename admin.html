@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Camera Yuklash Adminkasi</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      background-color: #f8f8f8;
+      min-height: 100vh;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+    }
+
+    form {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    input[type="text"],
+    input[type="file"] {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      padding: 0.7rem;
+      border: none;
+      background: #4f46e5;
+      color: white;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background: #4338ca;
+    }
+
+    .success {
+      margin-top: 1rem;
+      color: green;
+      font-weight: bold;
+      min-height: 24px;
+    }
+
+    #imagesList {
+      width: 320px;
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    #imagesList h3 {
+      margin-bottom: 1rem;
+    }
+
+    .image-item {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 1rem;
+    }
+
+    .image-item img {
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .image-name {
+      font-weight: bold;
+      color: #333;
+    }
+
+    .image-info {
+      font-size: 0.9rem;
+      color: #555;
+      text-align: center;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-delete {
+      background-color: #dc2626;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-delete:hover {
+      background-color: #b91c1c;
+    }
+
+    .btn-edit {
+      background-color: #2563eb;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-edit:hover {
+      background-color: #1e40af;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>📸 Camera Yuklash Adminkasi</h2>
+
+  <form id="uploadForm">
+    <input type="text" name="name" placeholder="Camera nomi" required />
+    <input type="text" name="title" placeholder="Camera info" required />
+    <input type="file" name="image" accept="image/*" />
+    <button type="submit">Yuklash</button>
+  </form>
+
+  <div class="success" id="successMessage"></div>
+
+  <div id="imagesList">
+    <h3>Yuklangan rasmlar</h3>
+    <div id="imagesContainer"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const successMessage = document.getElementById('successMessage');
+    const imagesContainer = document.getElementById('imagesContainer');
+
+    const API_URL = 'http://localhost:5000/api/images';
+    const STORAGE_KEY = 'uploadedImages';
+
+    let editImageId = null;
+
+    function saveImagesToLocal(images) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(images));
+    }
+
+    function getImagesFromLocal() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    }
+
+    function clearSuccessMsg() {
+      setTimeout(() => {
+        successMessage.textContent = '';
+      }, 3000);
+    }
+
+    function displayImages(images) {
+      imagesContainer.innerHTML = '';
+
+      if (!images.length) {
+        imagesContainer.innerHTML = '<p>Hozircha rasm yo‘q.</p>';
+        return;
+      }
+
+      images.forEach(img => {
+        const div = document.createElement('div');
+        div.className = 'image-item';
+
+        const imageUrl = `http://localhost:5000/uploads/${img.imageUrl}`;
+
+        div.innerHTML = `
+          <img src="${imageUrl}" alt="${img.name}" />
+          <div class="image-name">${img.name}</div>
+          <div class="image-info">${img.title || ''}</div>
+          <div class="btn-group">
+            <button data-id="${img._id}" class="btn-edit">Tahrirlash</button>
+            <button data-id="${img._id}" class="btn-delete">O'chirish</button>
+          </div>
+        `;
+
+        imagesContainer.appendChild(div);
+      });
+
+      // O'chirish tugmasi uchun
+      document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.target.dataset.id;
+          if (confirm("Rasmni o'chirmoqchimisiz?")) {
+            try {
+              const res = await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE',
+              });
+              if (!res.ok) throw new Error('O\'chirishda xatolik');
+              successMessage.textContent = '✅ Rasm muvaffaqiyatli o‘chirildi';
+              await loadImages();
+            } catch (err) {
+              successMessage.textContent = '❌ O\'chirishda xatolik yuz berdi';
+            }
+            clearSuccessMsg();
+          }
+        });
+      });
+
+      // Tahrirlash tugmasi uchun
+      document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.target.dataset.id;
+          const images = getImagesFromLocal();
+          const img = images.find(i => i._id === id);
+
+          if (!img) {
+            successMessage.textContent = '❌ Rasm topilmadi';
+            clearSuccessMsg();
+            return;
+          }
+
+          form.elements['name'].value = img.name;
+          form.elements['title'].value = img.title || '';
+          // Fayl inputni tozalaymiz, foydalanuvchi istasa yangisini yuklaydi
+          form.elements['image'].value = '';
+
+          editImageId = id;
+          successMessage.textContent = "🖊️ Tahrirlash rejimida. O'zgartirishlaringizni kiriting va 'Yuklash' tugmasini bosing.";
+          clearSuccessMsg();
+        });
+      });
+    }
+
+    async function loadImages() {
+      try {
+        const res = await fetch(API_URL);
+        if (!res.ok) throw new Error('Serverdan rasm olishda xatolik');
+        const images = await res.json();
+
+        saveImagesToLocal(images);
+        displayImages(images);
+      } catch (error) {
+        const images = getImagesFromLocal();
+        if (images.length > 0) {
+          displayImages(images);
+        } else {
+          imagesContainer.innerHTML = '<p>Rasmlar yuklanishda xatolik yuz berdi.</p>';
+        }
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      try {
+        let response, result;
+
+        if (editImageId) {
+          // Tahrirlash uchun PUT so'rovi
+          response = await fetch(`${API_URL}/${editImageId}`, {
+            method: 'PUT',
+            body: formData
+          });
+          result = await response.json();
+        } else {
+          // Yangi rasm yuklash POST so'rovi
+          response = await fetch(API_URL, {
+            method: 'POST',
+            body: formData
+          });
+          result = await response.json();
+        }
+
+        if (response.ok) {
+          successMessage.textContent = editImageId ? "✅ Muvaffaqiyatli tahrirlandi!" : "✅ Muvaffaqiyatli yuklandi!";
+          form.reset();
+          editImageId = null;
+          await loadImages();
+        } else {
+          successMessage.textContent = "❌ Xatolik: " + (result.message || 'Server xatoligi');
+        }
+      } catch (error) {
+        successMessage.textContent = "❌ Tarmoq xatolik yuz berdi";
+      }
+      clearSuccessMsg();
+    });
+
+    window.onload = () => {
+      const localImages = getImagesFromLocal();
+      if (localImages.length > 0) {
+        displayImages(localImages);
+        loadImages();
+      } else {
+        loadImages();
+      }
+    }
+  </script>
+</body>
+
+</html>
