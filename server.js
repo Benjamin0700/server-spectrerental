@@ -26,6 +26,9 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// uploads papkasini ochiq qilish (hamma kirishi mumkin bo'lishi uchun)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // Upload fayllarni xizmatga qo‘shish
 app.use('/uploads', express.static(path.resolve('uploads')));
 
