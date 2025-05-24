@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Rasm yuklash
-router.post('/', upload.single('image'), uploadImage);
+router.post('/', upload.single('upload'), uploadImage);
 
 // Barcha rasmlarni olish
 router.get('/', getImages);
@@ -34,6 +34,6 @@ router.get('/:id', getImageById);
 router.delete('/:id', deleteImage);
 
 // Rasmni yangilash
-router.put('/:id', upload.single('image'), updateImage);
+router.put('/:id', upload.single('upload'), updateImage);
 
 export default router;
