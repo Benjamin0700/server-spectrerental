@@ -6,13 +6,13 @@ import path from 'path';
 export const uploadImage = async (req, res) => {
   try {
     const { name, title } = req.body;
-    const imageUrl = req.file ? req.file.filename : null;
+    const upload = req.file ? req.file.filename : null;
 
-    if (!name || !imageUrl) {
+    if (!name || !upload) {
       return res.status(400).json({ message: "Nomi va rasm majburiy!" });
     }
 
-    const newImage = new Image({ name, title, imageUrl });
+    const newImage = new Image({ name, title, upload });
     await newImage.save();
     res.status(201).json({ message: 'Rasm yuklandi', data: newImage });
   } catch (err) {
@@ -49,7 +49,7 @@ export const deleteImage = async (req, res) => {
     const image = await Image.findById(req.params.id);
     if (!image) return res.status(404).json({ message: 'Rasm topilmadi' });
 
-    const filePath = path.join('uploads', image.imageUrl);
+    const filePath = path.join('uploads', image.upload);
     fs.unlink(filePath, (err) => {
       if (err) console.error('Fayl o\'chirilmadi:', err);
     });
@@ -71,12 +71,12 @@ export const updateImage = async (req, res) => {
     if (!image) return res.status(404).json({ message: 'Rasm topilmadi' });
 
     if (req.file) {
-      const oldFilePath = path.join('uploads', image.imageUrl);
+      const oldFilePath = path.join('uploads', image.upload);
       fs.unlink(oldFilePath, (err) => {
         if (err) console.error('Eski fayl o\'chirilmadi:', err);
       });
 
-      image.imageUrl = req.file.filename;
+      image.upload = req.file.filename;
     }
 
     if (name) image.name = name;
