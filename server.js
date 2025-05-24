@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // MongoDB ulanish
-mongoose.connect('mongodb+srv://jalolsoxiddinov777:ODhNX8q9ewksZ3sl@cluster.dqa55z5.mongodb.net/images?retryWrites=true&w=majority&appName=cluster')
+mongoose.connect('mongodb+srv://jalolsoxiddinov777:ODhNX8q9ewksZ3sl@cluster.dqa55z5.mongodb.net/camera?retryWrites=true&w=majority&appName=cluster')
     .then(() => console.log('✅ MongoDB ulandi'))
     .catch(err => console.error('❌ MongoDB ulanmadi:', err));
 
